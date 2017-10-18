@@ -1,0 +1,309 @@
+type Comment implements Node {
+  # The ID of an object
+  id: ID!
+  story: Story!
+  parent: Comment!
+  author: User!
+  comments: [Comment]
+  text: String
+  pointsCount: Int!
+  createdAt: String!
+  updatedAt: String!
+}
+
+input CreateCommentInput {
+  storyId: ID!
+  parentId: ID
+  text: String
+  clientMutationId: String
+}
+
+type CreateCommentPayload {
+  story: Comment
+  clientMutationId: String
+}
+
+input CreateStoryInput {
+  title: String
+  text: String
+  url: String
+  clientMutationId: String
+}
+
+type CreateStoryPayload {
+  story: Story
+  clientMutationId: String
+}
+
+type Email {
+  email: String!
+  verified: Boolean!
+}
+
+
+type Story implements Node {
+  # The ID of an object
+  id: ID!
+  author: User!
+  title: String!
+  url: String
+  text: String
+  comments: [Comment]
+  pointsCount: Int!
+  commentsCount: Int!
+  createdAt: String!
+  updatedAt: String!
+}
+
+# A connection to a list of items.
+type StoryConnection {
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # A list of edges.
+  edges: [StoryEdge]
+  totalCount: Int!
+}
+
+# An edge in a connection.
+type StoryEdge {
+  # The item at the end of the edge
+  node: Story
+
+  # A cursor for use in pagination
+  cursor: String!
+}
+
+input UpdateCommentInput {
+  id: ID!
+  text: ID
+  clientMutationId: String
+}
+
+type UpdateCommentPayload {
+  story: Comment
+  clientMutationId: String
+}
+
+input UpdateStoryInput {
+  id: ID!
+  title: String
+  text: String
+  url: String
+  clientMutationId: String
+}
+
+type UpdateStoryPayload {
+  story: Story
+  clientMutationId: String
+}
+
+type User implements Node {
+  # The ID of an object
+  id: ID!
+  displayName: String
+  imageUrl: String
+  emails: [Email]
+}
+
+
+schema {
+  query: Query
+  mutation: MyMutations
+}
+
+type Analysis implements Node {
+  analysisId: ID!
+  configId: String
+  analysisName: String
+  startDate: DateTime
+  createdDate: DateTime
+  lastUpdatedDate: DateTime
+  configuration: Configuration
+  analysisRunCollection(before: String, after: String, first: Int, last: Int): AnalysisRunConnection
+  id: ID!
+}
+
+type AnalysisConnection {
+  pageInfo: PageInfo!
+  edges: [AnalysisEdge]!
+}
+
+type AnalysisEdge {
+  node: Analysis
+  cursor: String!
+}
+
+input AnalysisInput {
+  analysisName: String
+  startDate: String
+  configId: ID!
+}
+
+type AnalysisRun implements Node {
+  analysisRunId: ID!
+  analysisId: Int!
+  configId: String
+  runStatus: Int!
+  workflowId: Int!
+  createdDate: DateTime
+  runStartDate: DateTime
+  runEndDate: DateTime
+  lastUpdatedDate: DateTime
+  runErrorCode: Int
+  workflow: Workflow
+  analysis: Analysis
+  configuration: Configuration
+  id: ID!
+}
+
+type AnalysisRunConnection {
+  pageInfo: PageInfo!
+  edges: [AnalysisRunEdge]!
+}
+
+type AnalysisRunEdge {
+  node: AnalysisRun
+  cursor: String!
+}
+
+input AnalysisRunInput {
+  workflowId: Int!
+  analysisId: Int!
+  configId: ID!
+}
+
+input ConfigInput {
+  configId: ID!
+  config: String!
+}
+
+type Configuration implements Node {
+  configId: String!
+  config: JSONString
+  createdDate: DateTime
+  lastUpdatedDate: DateTime
+  analysisRunCollection(before: String, after: String, first: Int, last: Int): AnalysisRunConnection
+  workflowCollection(before: String, after: String, first: Int, last: Int): WorkflowConnection
+  analysisCollection(before: String, after: String, first: Int, last: Int): AnalysisConnection
+  id: ID!
+}
+
+input CreateAnalysisInput {
+  myAnalysis: AnalysisInput
+  clientMutationId: String
+}
+
+type CreateAnalysisPayload {
+  ok: Boolean
+  analysis: Analysis
+  clientMutationId: String
+}
+
+input CreateAnalysisRunInput {
+  myAnalysisRun: AnalysisRunInput
+  clientMutationId: String
+}
+
+type CreateAnalysisRunPayload {
+  ok: Boolean
+  analysisRun: AnalysisRun
+  clientMutationId: String
+}
+
+input CreateConfigurationInput {
+  myConfig: ConfigInput
+  clientMutationId: String
+}
+
+type CreateConfigurationPayload {
+  ok: Boolean
+  config: Configuration
+  clientMutationId: String
+}
+
+input CreateWorkflowInput {
+  myWorkflow: WorkflowInput
+  clientMutationId: String
+}
+
+type CreateWorkflowPayload {
+  ok: Boolean
+  workflow: Workflow
+  clientMutationId: String
+}
+
+scalar DateTime
+
+scalar JSONString
+
+type MyMutations {
+  createConfig(input: CreateConfigurationInput!): CreateConfigurationPayload
+  createWorkflow(input: CreateWorkflowInput!): CreateWorkflowPayload
+  createAnalysis(input: CreateAnalysisInput!): CreateAnalysisPayload
+  createAnalysisRun(input: CreateAnalysisRunInput!): CreateAnalysisRunPayload
+
+  createStory(input: CreateStoryInput!): CreateStoryPayload
+  updateStory(input: UpdateStoryInput!): UpdateStoryPayload
+  createComment(input: CreateCommentInput!): CreateCommentPayload
+  updateComment(input: UpdateCommentInput!): UpdateCommentPayload
+}
+
+interface Node {
+  id: ID!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type Query {
+  node(id: ID!): Node
+  allWorkflows(before: String, after: String, first: Int, last: Int): WorkflowConnection
+  allAnalyses(before: String, after: String, first: Int, last: Int): AnalysisConnection
+  allAnalysisRuns(before: String, after: String, first: Int, last: Int): AnalysisRunConnection
+  workflow: Workflow
+  analysis: Analysis
+  analysisRun: AnalysisRun
+  configuration: Configuration
+
+    # Fetches objects given their IDs
+  nodes(
+    # The IDs of objects
+    ids: [ID!]!
+  ): [Node]!
+  me: User
+  stories(after: String, first: Int): StoryConnection
+}
+
+type Workflow implements Node {
+  workflowId: ID!
+  workflowName: String
+  workflowVersion: String
+  configId: String
+  createdDate: DateTime
+  lastUpdatedDate: DateTime
+  configuration: Configuration
+  analysisRunCollection(before: String, after: String, first: Int, last: Int): AnalysisRunConnection
+  id: ID!
+}
+
+type WorkflowConnection {
+  pageInfo: PageInfo!
+  edges: [WorkflowEdge]!
+}
+
+type WorkflowEdge {
+  node: Workflow
+  cursor: String!
+}
+
+input WorkflowInput {
+  workflowName: String
+  workflowVersion: String
+  configId: ID!
+}
+
