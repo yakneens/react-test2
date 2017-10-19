@@ -25,7 +25,7 @@ function fetchQuery(
         // Add authentication and other headers here
         'content-type': 'application/json',
       },
-      credentials: 'include',
+      //     credentials: 'include',
       body: JSON.stringify({
         query: operation.text, // GraphQL text from input
         variables,

@@ -8,20 +8,21 @@
 import React from 'react';
 import styled from 'styled-components';
 import { graphql, createFragmentContainer } from 'react-relay';
-import type { Home_stories } from './__generated__/Home_stories.graphql';
+
+import type { Home_workflows } from './__generated__/Home_workflows.graphql';
 
 import Link from '../Link';
 
-const StoryList = styled.ul`padding: 0;`;
+const WorkflowList = styled.ul`padding: 0;`;
 
-const Story = styled.li`
+const Workflow = styled.li`
   padding-bottom: 0.5em;
   list-style: none;
 `;
 
 class Home extends React.Component {
   props: {
-    stories: Home_stories,
+    workflows: Home_workflows,
   };
 
   render() {
@@ -35,14 +36,16 @@ class Home extends React.Component {
           </a>{' '}
           as an example:
         </p>
-        <StoryList>
-          {this.props.stories &&
-            this.props.stories.edges.map(({ node: story }) => (
-              <Story key={story.id}>
-                <Link href={`/story-${story.id}`}>{story.title}</Link>
-              </Story>
+        <WorkflowList>
+          {this.props.workflows &&
+            this.props.workflows.edges.map(({ node: workflow }) => (
+              <Workflow key={workflow.id}>
+                <Link href={`/workflow-${workflow.id}`}>
+                  {workflow.workflowName}
+                </Link>
+              </Workflow>
             ))}
-        </StoryList>
+        </WorkflowList>
       </div>
     );
   }
@@ -51,11 +54,11 @@ class Home extends React.Component {
 export default createFragmentContainer(
   Home,
   graphql`
-    fragment Home_stories on StoryConnection {
+    fragment Home_workflows on WorkflowConnection {
       edges {
         node {
           id
-          title
+          workflowName
         }
       }
     }
