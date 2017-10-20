@@ -12,6 +12,7 @@ import { graphql, createFragmentContainer } from 'react-relay';
 import Link from '../Link';
 import AppLogo from './AppLogo';
 import type { AppToolbar_me } from './__generated__/AppToolbar_me.graphql';
+import butler_logo from './butler.jpg';
 
 const Header = styled.header`
   position: relative;
@@ -116,8 +117,8 @@ class AppToolbar extends React.Component {
         <Row>
           <Section start>
             <TitleLink href="/">
-              <Logo />
-              React Static
+              <Logo img_src={butler_logo} />
+              Butler
             </TitleLink>
           </Section>
           <Section end>

@@ -8,9 +8,8 @@
 import React from 'react';
 import styled from 'styled-components';
 
-const KRIASOFT_URL = 'https://www.kriasoft.com/';
-const LICENSE_URL =
-  'https://github.com/kriasoft/react-static-boilerplate/blob/master/LICENSE.txt';
+const BUTLER_URL = 'https://github.com/llevar/butler';
+const LICENSE_URL = 'https://github.com/llevar/butler/blob/master/LICENSE';
 
 const Footer = styled.div`
   padding: 24px;
@@ -44,9 +43,9 @@ class AppFooter extends React.Component {
     return (
       <Footer>
         <Copyright css="padding-right: 0.5em">&copy; 2015-present</Copyright>
-        <ExtLink href={KRIASOFT_URL}>Kriasoft</ExtLink>
+        <ExtLink href={BUTLER_URL}>Butler Github</ExtLink>
         <Separator>|</Separator>
-        <ExtLink href={LICENSE_URL}>MIT License</ExtLink>
+        <ExtLink href={LICENSE_URL}>GPL v3.0 License</ExtLink>
       </Footer>
     );
   }

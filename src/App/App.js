@@ -13,6 +13,7 @@ import relay from '../relay';
 import router from '../router';
 import history from '../history';
 import AppRenderer from './AppRenderer';
+import 'antd/dist/antd.css';
 
 type ReadyState = {
   error: ?Error,

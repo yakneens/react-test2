@@ -6,19 +6,34 @@
 /* @flow */
 
 import React from 'react';
-import styled from 'styled-components';
+
 import { graphql, createFragmentContainer } from 'react-relay';
 
 import type { Home_workflows } from './__generated__/Home_workflows.graphql';
 
 import Link from '../Link';
 
-const WorkflowList = styled.ul`padding: 0;`;
+import { Table, Icon } from 'antd';
 
-const Workflow = styled.li`
-  padding-bottom: 0.5em;
-  list-style: none;
-`;
+const { Column, ColumnGroup } = Table;
+
+const columns = [
+  {
+    title: 'Workflow Name',
+    dataIndex: 'workflowName',
+    key: 'workflowName',
+  },
+  {
+    title: 'Configuration ID',
+    dataIndex: 'configId',
+    key: 'configId',
+  },
+  {
+    title: 'Workflow Version',
+    dataIndex: 'workflowVersion',
+    key: 'workflowVersion',
+  },
+];
 
 class Home extends React.Component {
   props: {
@@ -26,26 +41,17 @@ class Home extends React.Component {
   };
 
   render() {
+    const workflowData = this.props.workflows.edges.map(
+      ({ node: workflow }) => workflow,
+    );
+    console.log(workflowData);
     return (
       <div>
-        <h2>Welcome to React Static Boilerplate</h2>
-        <p>
-          Below is the list of "stories" fetched from{' '}
-          <a href="https://graphql-demo.kriasoft.com/">
-            graphql-demo.kriasoft.com
-          </a>{' '}
-          as an example:
-        </p>
-        <WorkflowList>
-          {this.props.workflows &&
-            this.props.workflows.edges.map(({ node: workflow }) => (
-              <Workflow key={workflow.id}>
-                <Link href={`/workflow-${workflow.id}`}>
-                  {workflow.workflowName}
-                </Link>
-              </Workflow>
-            ))}
-        </WorkflowList>
+        <Table
+          dataSource={workflowData}
+          columns={columns}
+          rowKey={record => record.id}
+        />
       </div>
     );
   }
@@ -59,6 +65,11 @@ export default createFragmentContainer(
         node {
           id
           workflowName
+          workflowVersion
+          configuration {
+            configId
+            config
+          }
         }
       }
     }

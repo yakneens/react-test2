@@ -52,6 +52,17 @@ const routes = [
       body: <Home />,
     }),
   },
+  {
+    path: '/workflows',
+    query: graphql`query routerWorkflowsQuery {
+      allWorkflows(first: 50) { ...Workflows_workflows }
+    }`, // prettier-ignore
+    components: () => [import(/* webpackChunkName: 'home' */ './Workflows')],
+    render: ([Workflows], data) => ({
+      title: 'Workflows page',
+      body: <Workflows workflows={data.allWorkflows} />,
+    }),
+  },
 ];
 
 function resolveRoute({ route, fetch, next }, params) {
