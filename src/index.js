@@ -11,5 +11,13 @@ import ReactDOM from 'react-dom';
 import App from './App';
 import registerServiceWorker from './registerServiceWorker';
 
-ReactDOM.render(<App />, document.getElementById('root'));
+import { LocaleProvider } from 'antd';
+import enUS from 'antd/lib/locale-provider/en_US';
+
+ReactDOM.render(
+  <LocaleProvider locale={enUS}>
+    <App />
+  </LocaleProvider>,
+  document.getElementById('root'),
+);
 registerServiceWorker();

@@ -21,7 +21,13 @@ const Path = styled('path')`
 
 class AppLogo extends React.Component {
   render() {
-    return <img src={this.props.img_src} className={this.props.className} />;
+    return (
+      <img
+        src={this.props.img_src}
+        className={this.props.className}
+        alt="Logo"
+      />
+    );
   }
 }
 
