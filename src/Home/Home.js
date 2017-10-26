@@ -13,32 +13,10 @@ import type { Home_workflows } from './__generated__/Home_workflows.graphql';
 
 import Link from '../Link';
 
-import { Table, Icon, Input, Popconfirm } from 'antd';
-
-const { Column, ColumnGroup } = Table;
-
-const columns = [
-  {
-    title: 'Workflow ID',
-    dataIndex: 'workflowId',
-    key: 'workflowId',
-  },
-  {
-    title: 'Workflow Name',
-    dataIndex: 'workflowName',
-    key: 'workflowName',
-  },
-  {
-    title: 'Workflow Version',
-    dataIndex: 'workflowVersion',
-    key: 'workflowVersion',
-  },
-  {
-    title: 'Configuration',
-    dataIndex: 'config',
-    key: 'config',
-  },
-];
+import { Table, Icon, Input, Popconfirm, Button } from 'antd';
+import '../Workflow/Workflow.js';
+import './Home.css';
+import 'antd/dist/antd.css';
 
 class EditableCell extends React.Component {
   state = {
@@ -72,17 +50,10 @@ class EditableCell extends React.Component {
     this.setState({ value });
   }
   render() {
-    const { value, editable, textarea } = this.state;
+    const { value, editable } = this.state;
     return (
       <div>
-        {editable ? textarea ? (
-          <div>
-            <Input.TextArea
-              value={value}
-              onChange={e => this.handleChange(e)}
-            />
-          </div>
-        ) : (
+        {editable ? (
           <div>
             <Input value={value} onChange={e => this.handleChange(e)} />
           </div>
@@ -95,60 +66,126 @@ class EditableCell extends React.Component {
 }
 
 class EditableTable extends React.Component {
-  props: {
-    workflows: Home_workflows,
-  };
   constructor(props) {
     super(props);
+    const workflowData = this.props.workflows.edges.map(({ node: w }) => ({
+      workflowId: { value: w.workflowId },
+      workflowName: { editable: false, value: w.workflowName },
+      workflowVersion: { editable: false, value: w.workflowVersion },
+      config: {
+        value: w.configuration ? w.configuration.config : '',
+      },
+      mode: {
+        value: 'view',
+      },
+      key: w.id,
+    }));
+    this.state = {
+      data: workflowData,
+      expandedRowKeys: [],
+      filterDropdownVisible: false,
+      searchText: '',
+      filtered: false,
+    };
     this.columns = [
       {
         title: 'Workflow ID',
         dataIndex: 'workflowId',
         width: '15%',
+        onFilter: (value, record) => record.name.indexOf(value) === 0,
+        sorter: (a, b) => a.workflowId - b.workflowId,
         render: (text, record, index) =>
-          this.renderColumns(this.state.data, index, 'workflowId', text),
+          this.renderColumns(this.state.data, record.key, 'workflowId', text),
       },
       {
         title: 'Workflow Name',
         dataIndex: 'workflowName',
         width: '15%',
+        onFilter: (value, record) => record.name.indexOf(value) === 0,
+        sorter: (a, b) =>
+          (a.workflowName === null) - (b.workflowName === null) ||
+          +(a.workflowName.length > b.workflowName.length) ||
+          -(a.workflowName.length < b.workflowName.length),
         render: (text, record, index) =>
-          this.renderColumns(this.state.data, index, 'workflowName', text),
+          this.renderColumns(this.state.data, record.key, 'workflowName', text),
+        filterDropdown: (
+          <div className="custom-filter-dropdown">
+            <Input
+              ref={ele => (this.searchInput = ele)}
+              placeholder="Search name"
+              value={this.state.searchText}
+              onChange={this.onInputChange}
+              onPressEnter={this.onSearch}
+            />
+            <Button type="primary" onClick={this.onSearch}>
+              Search
+            </Button>
+          </div>
+        ),
+        filterIcon: (
+          <Icon
+            type="smile-o"
+            style={{ color: this.state.filtered ? '#108ee9' : '#aaa' }}
+          />
+        ),
+        filterDropdownVisible: this.state.filterDropdownVisible,
+        onFilterDropdownVisibleChange: visible => {
+          this.setState(
+            {
+              filterDropdownVisible: visible,
+            },
+            () => this.searchInput.focus(),
+          );
+        },
       },
       {
         title: 'Workflow Version',
         dataIndex: 'workflowVersion',
         width: '15%',
+        onFilter: (value, record) => record.name.indexOf(value) === 0,
+        sorter: (a, b) =>
+          (a.workflowVersion === null) - (b.workflowVersion === null) ||
+          +(a.workflowVersion.length > b.workflowVersion.length) ||
+          -(a.workflowVersion.length < b.workflowVersion.length),
         render: (text, record, index) =>
-          this.renderColumns(this.state.data, index, 'workflowVersion', text),
+          this.renderColumns(
+            this.state.data,
+            record.key,
+            'workflowVersion',
+            text,
+          ),
       },
       {
         title: 'Configuration',
         dataIndex: 'config',
         width: '25%',
         render: (text, record, index) =>
-          this.renderColumns(this.state.data, index, 'config', text),
+          this.renderColumns(this.state.data, record.key, 'config', text),
       },
       {
         title: 'operation',
         dataIndex: 'operation',
         render: (text, record, index) => {
-          const { editable } = this.state.data[index].workflowName;
+          const recordIndex = Array.indexOf(
+            this.state.data.map(obj => obj.key),
+            record.key,
+          );
+          const { editable } = this.state.data[recordIndex].workflowName;
           return (
             <div className="editable-row-operations">
               {editable ? (
                 <span>
-                  <a onClick={() => this.editDone(index, 'save')}>Save</a>
+                  <a onClick={() => this.editDone(record.key, 'save')}>Save</a>
                   <Popconfirm
                     title="Sure to cancel?"
-                    onConfirm={() => this.editDone(index, 'cancel')}
+                    onConfirm={() => this.editDone(record.key, 'cancel')}
                   >
                     <a>Cancel</a>
                   </Popconfirm>
                 </span>
               ) : (
                 <span>
-                  <a onClick={() => this.edit(index)}>Edit</a>
+                  <a onClick={() => this.edit(record.key)}>Edit</a>
                 </span>
               )}
             </div>
@@ -156,20 +193,48 @@ class EditableTable extends React.Component {
         },
       },
     ];
-    const workflowData = this.props.workflows.edges.map(({ node: w }) => ({
-      workflowId: { value: w.workflowId },
-      workflowName: { editable: false, value: w.workflowName },
-      workflowVersion: { editable: false, value: w.workflowVersion },
-      config: {
-        editable: false,
-        value: w.configuration ? w.configuration.config : '',
-      },
-      key: w.id,
-    }));
-    this.state = { data: workflowData };
+    this.pagination = {
+      showSizeChanger: true,
+      showQuickJumper: true,
+    };
   }
-  renderColumns(data, index, key, text) {
-    const { editable, status } = data[index][key];
+  onInputChange = e => {
+    this.setState({ searchText: e.target.value });
+  };
+  onSearch = () => {
+    const { searchText, data } = this.state;
+    const reg = new RegExp(searchText, 'gi');
+    this.setState({
+      filterDropdownVisible: false,
+      filtered: !!searchText,
+      data: data
+        .map(record => {
+          const match = record.name.match(reg);
+          if (!match) {
+            return null;
+          }
+          return {
+            ...record,
+            name: (
+              <span>
+                {record.name
+                  .split(reg)
+                  .map(
+                    (text, i) =>
+                      i > 0
+                        ? [<span className="highlight">{match[0]}</span>, text]
+                        : text,
+                  )}
+              </span>
+            ),
+          };
+        })
+        .filter(record => !!record),
+    });
+  };
+  renderColumns(data, recordKey, key, text) {
+    const recordIndex = Array.indexOf(data.map(obj => obj.key), recordKey);
+    const { editable, status } = data[recordIndex][key];
     if (typeof editable === 'undefined') {
       return text;
     }
@@ -177,49 +242,93 @@ class EditableTable extends React.Component {
       <EditableCell
         editable={editable}
         value={text}
-        onChange={value => this.handleChange(key, index, value)}
+        onChange={value => this.handleChange(key, recordIndex, value)}
         status={status}
       />
     );
   }
-  handleChange(key, index, value) {
+  handleChange(key, recordIndex, value) {
     const { data } = this.state;
-    data[index][key].value = value;
+    data[recordIndex][key].value = value;
     this.setState({ data });
   }
-  edit(index) {
-    const { data } = this.state;
-    Object.keys(data[index]).forEach(item => {
+  edit(recordKey) {
+    const { data, expandedRowKeys } = this.state;
+    expandedRowKeys.push(recordKey);
+    this.setState({ expandedRowKeys });
+    const recordIndex = Array.indexOf(data.map(obj => obj.key), recordKey);
+
+    data[recordIndex]['mode'].value = 'edit';
+
+    Object.keys(data[recordIndex]).forEach(item => {
       if (
-        data[index][item] &&
-        typeof data[index][item].editable !== 'undefined'
+        data[recordIndex][item] &&
+        typeof data[recordIndex][item].editable !== 'undefined'
       ) {
-        data[index][item].editable = true;
+        data[recordIndex][item].editable = true;
       }
     });
     this.setState({ data });
   }
-  editDone(index, type) {
-    const { data } = this.state;
-    Object.keys(data[index]).forEach(item => {
+  editDone(recordKey, type) {
+    const { data, expandedRowKeys } = this.state;
+    const recordIndex = Array.indexOf(data.map(obj => obj.key), recordKey);
+
+    expandedRowKeys.splice(Array.indexOf(expandedRowKeys, recordKey), 1);
+    this.setState({ expandedRowKeys });
+
+    data[recordIndex]['mode'].value = 'view';
+
+    Object.keys(data[recordIndex]).forEach(item => {
       if (
-        data[index][item] &&
-        typeof data[index][item].editable !== 'undefined'
+        data[recordIndex][item] &&
+        typeof data[recordIndex][item].editable !== 'undefined'
       ) {
-        data[index][item].editable = false;
-        data[index][item].status = type;
+        data[recordIndex][item].editable = false;
+        data[recordIndex][item].status = type;
       }
     });
     this.setState({ data }, () => {
-      Object.keys(data[index]).forEach(item => {
+      Object.keys(data[recordIndex]).forEach(item => {
         if (
-          data[index][item] &&
-          typeof data[index][item].editable !== 'undefined'
+          data[recordIndex][item] &&
+          typeof data[recordIndex][item].editable !== 'undefined'
         ) {
-          delete data[index][item].status;
+          delete data[recordIndex][item].status;
         }
       });
     });
+  }
+  expandedRowRender = (record, index) => {
+    return record.mode === 'edit' ? (
+      <Input.TextArea
+        value={record.config}
+        onChange={e => this.handleConfigChange(e, record, index)}
+        autosize
+      />
+    ) : (
+      <pre>{JSON.stringify(JSON.parse(record.config), undefined, 2)}</pre>
+    );
+  };
+  handleConfigChange = (e, record, index) => {
+    const recordIndex = Array.indexOf(
+      this.state.data.map(obj => obj.key),
+      record.key,
+    );
+    const { data } = this.state;
+    data[recordIndex]['config'].value = e.target.value;
+    this.setState(data);
+  };
+  onExpandedRowsChange = rows => {
+    this.setState({
+      expandedRowKeys: rows,
+    });
+  };
+  onExpand = (expanded, record) => {
+    console.log('onExpand', expanded, record);
+  };
+  onChange(pagination, filters, sorter) {
+    console.log('params', pagination, filters, sorter);
   }
   render() {
     const { data } = this.state;
@@ -236,19 +345,19 @@ class EditableTable extends React.Component {
         bordered
         dataSource={dataSource}
         columns={columns}
-        expandedRowRender={record => (
-          <pre>{JSON.stringify(JSON.parse(record.config), undefined, 2)}</pre>
-        )}
+        expandedRowRender={this.expandedRowRender}
+        expandIconColumnIndex={3}
+        expandIconAsCell={false}
+        expandedRowKeys={this.state.expandedRowKeys}
+        onExpand={this.onExpand}
+        onChange={this.onChange}
+        pagination={this.pagination}
       />
     );
   }
 }
 
 class Home extends React.Component {
-  props: {
-    workflows: Home_workflows,
-  };
-
   render() {
     return (
       <div>
@@ -264,14 +373,7 @@ export default createFragmentContainer(
     fragment Home_workflows on WorkflowConnection {
       edges {
         node {
-          id
-          workflowName
-          workflowId
-          workflowVersion
-          configuration {
-            configId
-            config
-          }
+          ...Workflow_workflow
         }
       }
     }

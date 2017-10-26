@@ -19,7 +19,8 @@ class Workflow extends React.Component {
           {workflow.workflowName} - {workflow.id}
         </h1>
         <content>
-          {workflow.workflowId} {workflow.workflowVersion} {workflow.configId}
+          {workflow.workflowId} {workflow.workflowVersion}{' '}
+          {workflow.configuration.configId}
         </content>
       </article>
     );
@@ -34,7 +35,10 @@ export default createFragmentContainer(
       workflowName
       workflowVersion
       workflowId
-      configId
+      configuration {
+        configId
+        config
+      }
     }
   `,
 );

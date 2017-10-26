@@ -63,6 +63,14 @@ const routes = [
       body: <Workflows workflows={data.allWorkflows} />,
     }),
   },
+  {
+    path: '/test',
+    components: () => [import(/* webpackChunkName: 'home' */ './Test')],
+    render: ([Test]) => ({
+      title: 'Untitled Page',
+      body: <Test />,
+    }),
+  },
 ];
 
 function resolveRoute({ route, fetch, next }, params) {

@@ -14,7 +14,7 @@ import AppFooter from './AppFooter';
 import ErrorPage from '../ErrorPage';
 
 const Main = styled.div`
-  max-width: 600px;
+  max-width: 1024px;
   padding: 1rem;
   margin: 0 auto;
   background: rgba(0, 0, 0, 0.1);
