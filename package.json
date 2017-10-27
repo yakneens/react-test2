@@ -16,6 +16,7 @@
     "relay-runtime": "^1.4.1",
     "styled-components": "^2.1.2",
     "universal-router": "^3.2.0",
+    "uuid4": "^1.0.0",
     "watchman": "^0.1.8"
   },
   "devDependencies": {
@@ -54,7 +55,7 @@
     "fix":
       "eslint --ignore-path .gitignore --ignore-pattern \"!**/.*\" --fix .",
     "relay":
-      "node ./setup --download-schema && relay-compiler --src ./src --schema ./schema.graphql",
+      "node ./setup --download-schema && relay-compiler --src ./src --schema ./schema.graphql --verbose",
     "build": "node ./setup && react-scripts build && node ./render",
     "test": "node ./setup && react-scripts test --env=jsdom",
     "deploy": "node ./setup && react-scripts build && gh-pages -d build",

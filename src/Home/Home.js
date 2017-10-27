@@ -3,8 +3,6 @@
  * Copyright (c) 2015-present Kriasoft. All rights reserved.
  */
 
-/* @flow */
-
 import React from 'react';
 
 import { graphql, createFragmentContainer } from 'react-relay';
@@ -17,6 +15,9 @@ import { Table, Icon, Input, Popconfirm, Button } from 'antd';
 import '../Workflow/Workflow.js';
 import './Home.css';
 import 'antd/dist/antd.css';
+import CreateConfigMutation from './CreateConfigMutation';
+import relay from '../relay.js';
+import uuid from 'uuid4';
 
 class EditableCell extends React.Component {
   state = {
@@ -58,7 +59,9 @@ class EditableCell extends React.Component {
             <Input value={value} onChange={e => this.handleChange(e)} />
           </div>
         ) : (
-          <div className="editable-row-text">{value.toString() || ' '}</div>
+          <div className="editable-row-text">
+            {value ? value.toString() : ' '}
+          </div>
         )}
       </div>
     );
@@ -104,11 +107,10 @@ class EditableTable extends React.Component {
         onFilter: (value, record) => record.name.indexOf(value) === 0,
         sorter: (a, b) =>
           (a.workflowName === null) - (b.workflowName === null) ||
-          +(a.workflowName.length > b.workflowName.length) ||
-          -(a.workflowName.length < b.workflowName.length),
+          a.workflowName.localeCompare(b.workflowName),
         render: (text, record, index) =>
           this.renderColumns(this.state.data, record.key, 'workflowName', text),
-        filterDropdown: (
+        /*        filterDropdown: (
           <div className="custom-filter-dropdown">
             <Input
               ref={ele => (this.searchInput = ele)}
@@ -136,7 +138,7 @@ class EditableTable extends React.Component {
             },
             () => this.searchInput.focus(),
           );
-        },
+        },*/
       },
       {
         title: 'Workflow Version',
@@ -145,8 +147,7 @@ class EditableTable extends React.Component {
         onFilter: (value, record) => record.name.indexOf(value) === 0,
         sorter: (a, b) =>
           (a.workflowVersion === null) - (b.workflowVersion === null) ||
-          +(a.workflowVersion.length > b.workflowVersion.length) ||
-          -(a.workflowVersion.length < b.workflowVersion.length),
+          a.workflowVersion.localeCompare(b.workflowVersion),
         render: (text, record, index) =>
           this.renderColumns(
             this.state.data,
@@ -330,6 +331,9 @@ class EditableTable extends React.Component {
   onChange(pagination, filters, sorter) {
     console.log('params', pagination, filters, sorter);
   }
+  handleAdd = () => {
+    CreateConfigMutation.addConfig(relay, uuid(), '{"newkey":"newval"}');
+  };
   render() {
     const { data } = this.state;
     const dataSource = data.map(item => {
@@ -341,18 +345,23 @@ class EditableTable extends React.Component {
     });
     const columns = this.columns;
     return (
-      <Table
-        bordered
-        dataSource={dataSource}
-        columns={columns}
-        expandedRowRender={this.expandedRowRender}
-        expandIconColumnIndex={3}
-        expandIconAsCell={false}
-        expandedRowKeys={this.state.expandedRowKeys}
-        onExpand={this.onExpand}
-        onChange={this.onChange}
-        pagination={this.pagination}
-      />
+      <div>
+        <Button className="editable-add-btn" onClick={this.handleAdd}>
+          Add
+        </Button>
+        <Table
+          bordered
+          dataSource={dataSource}
+          columns={columns}
+          expandedRowRender={this.expandedRowRender}
+          expandIconColumnIndex={3}
+          expandIconAsCell={false}
+          expandedRowKeys={this.state.expandedRowKeys}
+          onExpand={this.onExpand}
+          onChange={this.onChange}
+          pagination={this.pagination}
+        />
+      </div>
     );
   }
 }
@@ -373,7 +382,14 @@ export default createFragmentContainer(
     fragment Home_workflows on WorkflowConnection {
       edges {
         node {
-          ...Workflow_workflow
+          id
+          workflowName
+          workflowId
+          workflowVersion
+          configuration {
+            configId
+            config
+          }
         }
       }
     }

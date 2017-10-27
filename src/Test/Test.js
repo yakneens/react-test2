@@ -275,7 +275,7 @@ ReactDOM.render(<Test />, document.getElementById('root')); */
  */
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Table, Input, Popconfirm, Button } from 'antd';
+import { Table, Input, Popconfirm, Button, Icon } from 'antd';
 
 import 'antd/dist/antd.css';
 
@@ -363,72 +363,13 @@ class EditableCell2 extends React.Component {
 class EditableTable2 extends React.Component {
   constructor(props) {
     super(props);
-    this.columns = [
-      {
-        title: 'Workflow ID',
-        dataIndex: 'workflowId',
-        width: '15%',
-        render: (text, record, index) =>
-          this.renderColumns(this.state.data, record.key, 'workflowId', text),
-      },
-      {
-        title: 'Workflow Name',
-        dataIndex: 'workflowName',
-        width: '15%',
-        render: (text, record, index) =>
-          this.renderColumns(this.state.data, record.key, 'workflowName', text),
-      },
-      {
-        title: 'Workflow Version',
-        dataIndex: 'workflowVersion',
-        width: '15%',
-        render: (text, record, index) =>
-          this.renderColumns(
-            this.state.data,
-            record.key,
-            'workflowVersion',
-            text,
-          ),
-      },
-      {
-        title: 'Configuration',
-        dataIndex: 'config',
-        width: '25%',
-        render: (text, record, index) =>
-          this.renderColumns(this.state.data, record.key, 'config', text),
-      },
-      {
-        title: 'operation',
-        dataIndex: 'operation',
-        render: (text, record, index) => {
-          const recordIndex = Array.indexOf(
-            this.state.data.map(obj => obj.key),
-            record.key,
-          );
-          const { editable } = this.state.data[recordIndex].workflowName;
-          return (
-            <div className="editable-row-operations">
-              {editable ? (
-                <span>
-                  <a onClick={() => this.editDone(record.key, 'save')}>Save</a>
-                  <Popconfirm
-                    title="Sure to cancel?"
-                    onConfirm={() => this.editDone(record.key, 'cancel')}
-                  >
-                    <a>Cancel</a>
-                  </Popconfirm>
-                </span>
-              ) : (
-                <span>
-                  <a onClick={() => this.edit(record.key)}>Edit</a>
-                </span>
-              )}
-            </div>
-          );
-        },
-      },
-    ];
-    this.state = { data: props.workflows, expandedRowKeys: [] };
+    this.state = {
+      data: props.workflows,
+      expandedRowKeys: [],
+      filterDropdownVisible: false,
+      searchText: '',
+      filtered: false,
+    };
   }
   renderColumns(data, recordKey, key, text) {
     const recordIndex = Array.indexOf(data.map(obj => obj.key), recordKey);
@@ -446,6 +387,36 @@ class EditableTable2 extends React.Component {
       />
     );
   }
+  onInputChange = e => {
+    this.setState({ searchText: e.target.value });
+  };
+  onSearch = () => {
+    const { searchText, data } = this.state;
+    const reg = new RegExp(searchText, 'gi');
+    data.map(record => {
+      const match = record.workflowName.value.match(reg);
+      if (!match) {
+        return null;
+      }
+      record.workflowName.value = (
+        <span>
+          {record.workflowName.value
+            .split(reg)
+            .map(
+              (text, i) =>
+                i > 0
+                  ? [<span className="highlight">{match[0]}</span>, text]
+                  : text,
+            )}
+        </span>
+      );
+    });
+    this.setState({
+      filterDropdownVisible: false,
+      filtered: !!searchText,
+      data: data.filter(record => !!record),
+    });
+  };
   handleChange(key, recordIndex, value) {
     const { data } = this.state;
     data[recordIndex][key].value = value;
@@ -500,11 +471,6 @@ class EditableTable2 extends React.Component {
   }
   expandedRowRender = (record, index) => {
     console.log('a');
-    const recordIndex = Array.indexOf(
-      this.state.data.map(obj => obj.key),
-      record.key,
-    );
-
     return record.mode === 'edit' ? (
       <Input.TextArea
         value={record.config}
@@ -550,7 +516,112 @@ class EditableTable2 extends React.Component {
       });
       return obj;
     });
-    const columns = this.columns;
+
+    const columns = [
+      {
+        title: 'Workflow ID',
+        dataIndex: 'workflowId',
+        key: 'workflowId',
+        width: '15%',
+        render: (text, record, index) =>
+          this.renderColumns(this.state.data, record.key, 'workflowId', text),
+      },
+      {
+        title: 'Workflow Name',
+        dataIndex: 'workflowName',
+        key: 'workflowName',
+        width: '15%',
+        onFilter: (value, record) =>
+          record.workflowName.value.indexOf(value) === 0,
+        render: (text, record, index) =>
+          this.renderColumns(this.state.data, record.key, 'workflowName', text),
+        filterDropdown: (
+          <div className="custom-filter-dropdown">
+            <Input
+              ref={ele => {
+                this.searchInput = ele;
+                return this.searchInput;
+              }}
+              placeholder="Search name"
+              value={this.state.searchText}
+              onChange={this.onInputChange}
+              onPressEnter={this.onSearch}
+            />
+            <Button type="primary" onClick={this.onSearch}>
+              Search
+            </Button>
+          </div>
+        ),
+        filterIcon: (
+          <Icon
+            type="search"
+            style={{ color: this.state.filtered ? '#108ee9' : '#aaa' }}
+          />
+        ),
+        filterDropdownVisible: this.state.filterDropdownVisible,
+        onFilterDropdownVisibleChange: visible => {
+          this.setState(
+            {
+              filterDropdownVisible: visible,
+            },
+            () => {
+              this.searchInput.focus();
+            },
+          );
+        },
+      },
+      {
+        title: 'Workflow Version',
+        dataIndex: 'workflowVersion',
+        key: 'workflowVersion',
+        width: '15%',
+        render: (text, record, index) =>
+          this.renderColumns(
+            this.state.data,
+            record.key,
+            'workflowVersion',
+            text,
+          ),
+      },
+      {
+        title: 'Configuration',
+        dataIndex: 'config',
+        key: 'config',
+        width: '25%',
+        render: (text, record, index) =>
+          this.renderColumns(this.state.data, record.key, 'config', text),
+      },
+      {
+        title: 'operation',
+        dataIndex: 'operation',
+        render: (text, record, index) => {
+          const recordIndex = Array.indexOf(
+            this.state.data.map(obj => obj.key),
+            record.key,
+          );
+          const { editable } = this.state.data[recordIndex].workflowName;
+          return (
+            <div className="editable-row-operations">
+              {editable ? (
+                <span>
+                  <a onClick={() => this.editDone(record.key, 'save')}>Save</a>
+                  <Popconfirm
+                    title="Sure to cancel?"
+                    onConfirm={() => this.editDone(record.key, 'cancel')}
+                  >
+                    <a>Cancel</a>
+                  </Popconfirm>
+                </span>
+              ) : (
+                <span>
+                  <a onClick={() => this.edit(record.key)}>Edit</a>
+                </span>
+              )}
+            </div>
+          );
+        },
+      },
+    ];
     return (
       <Table
         bordered
