@@ -13,7 +13,7 @@ const mutation = graphql`
   }
 `;
 
-function addConfig(environment, configId, config) {
+function addConfig(environment, configId, config, callback) {
   const variables = {
     myConfig: {
       myConfig: {
@@ -28,6 +28,7 @@ function addConfig(environment, configId, config) {
     variables: variables,
     onCompleted: (response, errors) => {
       console.log(response);
+      callback(response);
     },
     onError: err => console.error(err),
   });

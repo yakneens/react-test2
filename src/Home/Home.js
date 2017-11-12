@@ -16,6 +16,7 @@ import '../Workflow/Workflow.js';
 import './Home.css';
 import 'antd/dist/antd.css';
 import CreateConfigMutation from './CreateConfigMutation';
+import CreateWorkflowMutation from './CreateWorkflowMutation';
 import relay from '../relay.js';
 import uuid from 'uuid4';
 
@@ -331,9 +332,30 @@ class EditableTable extends React.Component {
   onChange(pagination, filters, sorter) {
     console.log('params', pagination, filters, sorter);
   }
-  handleAdd = () => {
-    CreateConfigMutation.addConfig(relay, uuid(), '{"newkey":"newval"}');
+
+  addWorkflow = configId => {
+    CreateWorkflowMutation.addWorkflow(
+      relay,
+      'My New Workflow',
+      'v1.0',
+      configId,
+      response => {
+        console.log(response);
+      },
+    );
   };
+
+  handleAdd = () => {
+    CreateConfigMutation.addConfig(
+      relay,
+      uuid(),
+      '{"newkey":"newval"}',
+      response => {
+        this.addWorkflow(response.createConfig.config.configId);
+      },
+    );
+  };
+
   render() {
     const { data } = this.state;
     const dataSource = data.map(item => {
